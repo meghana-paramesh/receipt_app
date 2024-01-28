@@ -14,6 +14,12 @@ from drf_yasg.utils import swagger_auto_schema
 class PurchaseViewSet(viewsets.ModelViewSet):
     queryset = Purchase.objects.all()
     serializer_class = PurchaseSerializer
+    def create(self, request, *args, **kwargs):
+        response = super(PurchaseViewSet, self).create(request, *args, **kwargs)
+        if response.status_code == status.HTTP_201_CREATED:
+            purchase_uuid = response.data['uuid']
+            purchase = get_object_or_404(Purchase, uuid=purchase_uuid)
+            return Response({"id":purchase.uuid})
 
 class CalculatePointsView(APIView):
     """
@@ -52,6 +58,6 @@ class CalculatePointsView(APIView):
         if purchase.purchaseTime.hour >= 14 and purchase.purchaseTime.hour < 16:
             total_points += 10
 
-        return Response({'uuid': str(purchase.uuid), 'total_points': total_points}, status=status.HTTP_200_OK)
+        return Response({'points': total_points}, status=status.HTTP_200_OK)
 
 
